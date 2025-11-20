@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Airing Calendar</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-row">
+            <div class="header-left">
+                <section id="search-section">
+                    <input type="text" id="search-input" placeholder="Search anime...">
+                    <button id="search-btn" class="main-btn">Search</button>
+                </section>
+            </div>
+            <div class="header-center">
+                <h1>Anime Airing Calendar</h1>
+            </div>
+            <div class="header-right">
+                <a href="watching.html" id="watching-btn" class="main-btn">My Currently Watching</a>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div id="calendar"></div>
+        <section id="watching-today-section">
+            <h2 id="watching-today-title">Your Watching Anime Airing Today</h2>
+            <ul id="watching-today-list"></ul>
+        </section>
+        <section id="anime-list-section">
+            <h2 id="anime-list-title"></h2>
+            <ul id="anime-list"></ul>
+        </section>
+        <section id="search-results-section" style="display:none;">
+            <h2>Search Results</h2>
+            <ul id="search-results-list" class="anime-grid"></ul>
+        </section>
+    </main>
+    
+    <script src="app.js"></script>
+</body>
+</html>

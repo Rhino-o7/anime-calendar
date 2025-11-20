@@ -1,0 +1,14 @@
+{
+  "name": "anilist-airing-anime",
+  "version": "1.0.0",
+  "description": "A webpage to view all current airing anime and their release times and days using the AniList API.",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "live-server src"
+  },
+  "dependencies": {
+    "axios": "^0.21.1"
+  },
+  "author": "",
+  "license": "ISC"
+}
