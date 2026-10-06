@@ -56,7 +56,8 @@ const fetchAllAiringAnime = async () => {
         const pageData = await fetchAiringAnime(page);
         allAnime = allAnime.concat(
             pageData.media.filter(
-                a => a.nextAiringEpisode && a.averageScore >= 50 // adjust threshold as desired
+                // New shows have no averageScore yet, so only exclude ones with a known low score
+                a => a.nextAiringEpisode && (a.averageScore == null || a.averageScore >= 50)
             )
         );
         hasNextPage = pageData.pageInfo.hasNextPage;
