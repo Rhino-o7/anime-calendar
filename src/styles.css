@@ -218,6 +218,76 @@ h1, h2 {
     color: #fff;
 }
 
+/* Live search suggestions */
+#search-section {
+    position: relative;
+}
+#search-suggestions {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 420px;
+    max-width: 90vw;
+    max-height: 480px;
+    overflow-y: auto;
+    background: #1c2130;
+    border: 1.5px solid var(--accent-blue);
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+.suggestion-message {
+    padding: 14px;
+    color: var(--text-main);
+}
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-bottom: 1px solid #2c3350;
+}
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover { background: #26304a; }
+.suggestion-item img {
+    width: 40px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: #181c24;
+    flex-shrink: 0;
+}
+.suggestion-text { flex: 1; min-width: 0; }
+.suggestion-title {
+    color: var(--text-main);
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.suggestion-sub {
+    color: #9aa3bd;
+    font-size: 0.85em;
+    text-transform: capitalize;
+}
+.suggestion-btn {
+    background: none;
+    border: 1.5px solid var(--accent-blue-light);
+    color: var(--accent-blue-light);
+    border-radius: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.suggestion-btn:hover { background: var(--accent-blue-light); color: #fff; }
+.suggestion-btn.is-watching { border-color: #e53935; color: #e53935; }
+.suggestion-btn.is-watching:hover { background: #e53935; color: #fff; }
+
+#watching-finished-section {
+    max-width: 1400px;
+    margin: 0 auto 40px auto;
+}
+
 /* Main button style (used for nav and search) */
 .main-btn {
     background: var(--accent-blue);

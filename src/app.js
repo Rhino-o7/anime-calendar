@@ -278,18 +278,6 @@ function renderSearchResults(animeList) {
     });
 }
 
-function searchAndRenderAllAnime() {
-    const term = document.getElementById('search-input').value.trim().toLowerCase();
-    if (!term) {
-        document.getElementById('search-results-section').style.display = 'none';
-        return;
-    }
-    const filtered = globalAnimeList.filter(anime =>
-        (anime.title.english || anime.title.romaji).toLowerCase().includes(term)
-    );
-    renderSearchResults(filtered);
-}
-
 function getCustomLinks() {
     return JSON.parse(localStorage.getItem('customAnimeLinks') || '{}');
 }
@@ -314,17 +302,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     showAnimeForDate(todayStr, animeByDate[todayStr] || []);
     renderCalendar(animeByDate);
 
-    // Render all anime list
-    renderAllAnimeList(animeList);
+});
 
-    // Search functionality
-    document.getElementById('search-btn').addEventListener('click', searchAndRenderAllAnime);
-    document.getElementById('search-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') searchAndRenderAllAnime();
-    });
-    document.getElementById('search-input').addEventListener('input', (e) => {
-        if (!e.target.value.trim()) {
-            document.getElementById('search-results-section').style.display = 'none';
-        }
+document.addEventListener('DOMContentLoaded', () => {
+    initAnimeSearch({
+        onWatchingChanged: () => {
+            const animeByDate = getAnimeByDate(globalAnimeList);
+            showAnimeForDate(selectedDateStr, animeByDate[selectedDateStr] || []);
+        },
     });
 });

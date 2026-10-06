@@ -7,15 +7,30 @@
 </head>
 <body>
     <header>
-        <h1>My Currently Watching Anime</h1>
-        <nav>
-            <a href="index.html">Back to Airing List</a>
-        </nav>
+        <div class="header-row">
+            <div class="header-left">
+                <section id="search-section">
+                    <input type="text" id="search-input" placeholder="Search anime to add..." autocomplete="off">
+                    <button id="search-btn" class="main-btn">Search</button>
+                </section>
+            </div>
+            <div class="header-center">
+                <h1>My Currently Watching Anime</h1>
+            </div>
+            <div class="header-right">
+                <a href="index.html" class="main-btn">Back to Airing List</a>
+            </div>
+        </div>
     </header>
     <main>
         <div id="watching-weekly-calendar"></div>
+        <section id="watching-finished-section" style="display:none;">
+            <h2>Finished Airing / Older Anime</h2>
+            <div id="watching-finished-list" class="anime-grid"></div>
+        </section>
         <ul id="watching-list"></ul>
     </main>
+    <script src="search.js"></script>
     <script src="watching.js"></script>
 </body>
 </html>

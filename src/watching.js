@@ -31,8 +31,8 @@ async function fetchAnimeById(id) {
 async function fetchAnimeBatchByIds(ids) {
     if (ids.length === 0) return [];
     const query = `
-    query ($ids: [Int]) {
-      Page(perPage: ${ids.length}) {
+    query ($ids: [Int], $perPage: Int) {
+      Page(perPage: $perPage) {
         media(id_in: $ids, type: ANIME) {
           id
           title {
@@ -44,6 +44,8 @@ async function fetchAnimeBatchByIds(ids) {
             large
             extraLarge
           }
+          status
+          seasonYear
           nextAiringEpisode {
             airingAt
             episode
@@ -51,18 +53,29 @@ async function fetchAnimeBatchByIds(ids) {
         }
       }
     }`;
-    const variables = { ids };
-    const response = await fetch('https://graphql.anilist.co', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, variables }),
-    });
-    const { data } = await response.json();
-    return data.Page.media;
+    // AniList caps perPage at 50
+    const chunks = [];
+    for (let i = 0; i < ids.length; i += 50) chunks.push(ids.slice(i, i + 50));
+    const results = await Promise.all(chunks.map(async chunk => {
+        const response = await fetch('https://graphql.anilist.co', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, variables: { ids: chunk, perPage: chunk.length } }),
+        });
+        const { data } = await response.json();
+        return data.Page.media;
+    }));
+    return results.flat();
 }
 
 function getWatchingList() {
     return JSON.parse(localStorage.getItem('watchingList') || '[]');
+}
+
+function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
 }
 
 function slugifyTitle(title) {
@@ -89,23 +102,49 @@ function getCustomLink(animeId) {
 async function displayWatchingList() {
     const list = getWatchingList();
     const calendarDiv = document.getElementById('watching-weekly-calendar');
+    const finishedSection = document.getElementById('watching-finished-section');
+    const finishedDiv = document.getElementById('watching-finished-list');
     calendarDiv.innerHTML = '';
+    finishedDiv.innerHTML = '';
+    finishedSection.style.display = 'none';
 
     if (list.length === 0) {
         calendarDiv.innerHTML = '<div class="no-anime">You are not watching any anime yet.</div>';
         return;
     }
 
-    // Fetch all anime details in one batch request
+    // Fetch all anime details in batch requests
     const animeArr = await fetchAnimeBatchByIds(list);
+
+    // Anime with no upcoming episode (finished or older releases)
+    const isStillAiring = a =>
+        a.status !== 'FINISHED' && a.status !== 'CANCELLED' &&
+        a.nextAiringEpisode && a.nextAiringEpisode.airingAt;
+    const finishedArr = animeArr.filter(a => !isStillAiring(a));
+    if (finishedArr.length > 0) {
+        finishedSection.style.display = 'block';
+        finishedDiv.innerHTML = finishedArr.map(anime => {
+            const title = escapeHtml(anime.title.english || anime.title.romaji);
+            const cover = anime.coverImage.extraLarge || anime.coverImage.large || anime.coverImage.medium;
+            const status = (anime.status || '').replace(/_/g, ' ').toLowerCase();
+            const info = [anime.seasonYear, status].filter(Boolean).join(' · ');
+            return `
+                <div class="anime-card finished-anime-card" data-id="${anime.id}" style="cursor: pointer;">
+                    <img src="${cover}" alt="${title}" class="anime-cover">
+                    <div class="anime-title">${title}</div>
+                    <div class="release-info">${escapeHtml(info)}</div>
+                    <button class="remove-watching-btn" data-id="${anime.id}">Remove</button>
+                </div>`;
+        }).join('');
+    }
 
     // Group by day of week
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const animeByDay = {};
     for (const day of days) animeByDay[day] = [];
 
-    animeArr.forEach(anime => {
-        if (anime.nextAiringEpisode && anime.nextAiringEpisode.airingAt) {
+    animeArr.filter(isStillAiring).forEach(anime => {
+        {
             const airingDate = new Date(anime.nextAiringEpisode.airingAt * 1000);
             const weekday = days[airingDate.getDay()];
             animeByDay[weekday].push({ ...anime, airingDate });
@@ -145,8 +184,8 @@ async function displayWatchingList() {
     calendarHTML += '</div>';
     calendarDiv.innerHTML = calendarHTML;
 
-    // Add remove button listeners for calendar
-    calendarDiv.querySelectorAll('.remove-watching-btn').forEach(btn => {
+    // Add remove button and click/contextmenu listeners for all cards (weekly + finished)
+    document.querySelectorAll('.remove-watching-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const animeId = Number(e.target.getAttribute('data-id'));
             let list = getWatchingList();
@@ -156,8 +195,7 @@ async function displayWatchingList() {
         });
     });
 
-    // Add click and contextmenu listeners for anime cards
-    calendarDiv.querySelectorAll('.weekly-anime-card').forEach(card => {
+    document.querySelectorAll('.weekly-anime-card, .finished-anime-card').forEach(card => {
         const animeId = card.getAttribute('data-id');
         // Left click: open link if set
         card.addEventListener('click', (e) => {
@@ -181,4 +219,7 @@ async function displayWatchingList() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', displayWatchingList);
+document.addEventListener('DOMContentLoaded', () => {
+    initAnimeSearch({ onWatchingChanged: displayWatchingList });
+    displayWatchingList();
+});
